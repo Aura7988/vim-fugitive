@@ -2950,7 +2950,7 @@ function! s:StatusRender(stat) abort
       endfor
     else
       try
-        let merge_msg = get(readfile(fugitive#Find('.git/MERGE_MSG', dir)), 0, '')
+        let merge_msg = get(readfile(fugitive#Find('.git/MERGE_MSG', dir), '', 1), 0, '')
       catch
       endtry
     endif
