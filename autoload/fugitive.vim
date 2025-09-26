@@ -8375,13 +8375,12 @@ function! fugitive#Statusline(...) abort
   if empty(dir)
     return ''
   endif
-  let status = ''
+  let status = fugitive#Head(9, dir)
   let commit = s:DirCommitFile(@%)[1]
   if len(commit)
     let status .= ':' . commit[0:6]
   endif
-  let status .= '('.fugitive#Head(7, dir).')'
-  return '[Git'.status.']'
+  return status
 endfunction
 
 function! fugitive#statusline(...) abort
