@@ -578,9 +578,7 @@ command! -bar -bang -nargs=1 -complete=customlist,fugitive#CompleteObject GMove 
 command! -bar -bang -nargs=1 -complete=customlist,fugitive#RenameComplete GRename exe fugitive#RenameCommand(<line1>, <count>, +"<range>", <bang>0, "<mods>", <q-args>)
 command! -bar -bang -range=-1 -nargs=* -complete=customlist,fugitive#CompleteObject GBrowse exe fugitive#BrowseCommand(<line1>, <count>, +"<range>", <bang>0, "<mods>", <q-args>)
 
-if v:version < 704
-  finish
-endif
+command! -bar GAnnotation call annotation#show(expand('%:p'), line('.'))
 
 let g:io_fugitive = {
       \ 'simplify': function('fugitive#simplify'),
