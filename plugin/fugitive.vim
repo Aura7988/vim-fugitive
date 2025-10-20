@@ -579,6 +579,7 @@ command! -bar -bang -nargs=1 -complete=customlist,fugitive#RenameComplete GRenam
 command! -bar -bang -range=-1 -nargs=* -complete=customlist,fugitive#CompleteObject GBrowse exe fugitive#BrowseCommand(<line1>, <count>, +"<range>", <bang>0, "<mods>", <q-args>)
 
 command! -bar GAnnotation call annotation#show(expand('%:p'), line('.'))
+command! -bang -range=0 -nargs=* -complete=file Flog call flog#Show(<range>, <line1>, <line2>, <bang>0, '<mods>', <q-args>)
 
 let g:io_fugitive = {
       \ 'simplify': function('fugitive#simplify'),
