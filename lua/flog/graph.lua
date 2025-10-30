@@ -223,7 +223,6 @@ function M.get_graph(instance_number, start_token, enable_extended_chars, enable
 
     local should_out_merge_line = false
     local should_move_last_parent_under_commit = false
-    local should_pad = false
 
     -- Internal state
     local commit_hl = next_commit_hl
@@ -508,9 +507,6 @@ function M.get_graph(instance_number, start_token, enable_extended_chars, enable
         end
 
         if should_out_merge_line then
-          -- Disable padding, not needed with extra merge line
-          should_pad = false
-
           -- Draw commit merge string
           if commit_merge_branch_index == commit_branch_index then
             -- Draw merge start at commit
@@ -686,11 +682,6 @@ function M.get_graph(instance_number, start_token, enable_extended_chars, enable
       end
 
       if nmissing_parents > 0 then
-        -- Handle missing parents
-
-        -- Missing parents require padding to separate branch lines
-        should_pad = true
-
         -- Set fading parent branch strings
         local missing_parent_index = 1
         while missing_parent_index <= nmissing_parents do
@@ -785,14 +776,6 @@ function M.get_graph(instance_number, start_token, enable_extended_chars, enable
       vim_out[out_line] = missing_parents_line
       out_line = out_line + 1
       vim_commit_suffix[vim_commit_suffix_index] = missing_parents_line
-    end
-    if should_pad then
-      local padding_line = table.concat(branch_out, '', 1, graph_width)
-      vim_commit_suffix_index = vim_commit_suffix_index + 1
-      vim_line_commits[out_line] = vim_commit_index
-      vim_out[out_line] = padding_line
-      out_line = out_line + 1
-      vim_commit_suffix[vim_commit_suffix_index] = padding_line
     end
     vim_commit.suffix_len = vim_commit_suffix_index
 
