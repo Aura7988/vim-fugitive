@@ -104,7 +104,11 @@ function M.get_graph(instance_number, start_token, enable_extended_chars, enable
   local handle = io.popen(cmd)
 
   -- Skip first line (start token)
-  handle:read()
+  local st = handle:read()
+  if st ~= start_token then
+    handle:close()
+    return {err = st}
+  end
 
   -- Read commits until EOF
   for hash in handle:lines() do

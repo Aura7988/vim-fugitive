@@ -96,6 +96,28 @@ function! s:open_hash(sha = 0) abort
 	endif
 endfunction
 
+function! s:shellesc(arg) abort
+	return a:arg =~# '^[A-Za-z0-9_/:.-]\+$' ? a:arg : shellescape(a:arg)
+endfunction
+
+function! s:relative(dir, path) abort
+	let fullpath = fnamemodify(a:path, ':p')
+	return stridx(fullpath, a:dir) == 0 ? fullpath[len(a:dir)+1:] : a:path
+endfunction
+
+function! s:build_args(args, dir) abort
+	let words = map(split(a:args, '\%(\\\@<! \+\)'), "substitute(v:val, '\\v\\\\(.)', '\\1', 'g')")
+	let i = 0
+	let result = ''
+	let id = index(words, '--')
+	if id < 0 | let id = len(words) | endif
+	for arg in words
+		let result .= ' ' . s:shellesc(i > id && arg[0] != '/' ? s:relative(a:dir, arg) : arg)
+		let i += 1
+	endfor
+	return result
+endfunction
+
 function! flog#Show(range, line1, line2, bang, mods, args) abort
 	if &filetype !=# 'flog'
 		let gitdir = FugitiveGitDir()
@@ -105,17 +127,17 @@ function! flog#Show(range, line1, line2, bang, mods, args) abort
 		if !filereadable(FugitiveGitDir() . '/objects/info/commit-graph')
 			call system(['git', '-C', workdir, 'commit-graph', 'write', '--reachable', '--progress'])
 		endif
-		let cmd = 'git -C ' . shellescape(workdir) . ' log --no-color --pretty=' . shellescape('format:__L%n%h%n%p%n%D%n%h -%d %s %ai @%an')
+		let cmd = 'git -C ' . s:shellesc(workdir) . ' log --no-color --pretty=''format:__L%n%h%n%p%n%D%n%h -%d %s %ai @%an'''
 	else
 		let cmd = b:flog.cmd
 		let workdir = b:flog.workdir
 	endif
 
 	let opts = a:bang ? '' : ' --parents --topo-order'
-	let opts .= a:range > 0 ? (a:line1 != 0 ? ' -L'.a:line1.','.a:line2.':'.expand('%:p:S') : '') : ' -5999'
-	let opts .= ' ' . a:args
+	let opts .= a:range > 0 ? (a:line1 != 0 ? ' -L'.a:line1.','.a:line2.':'.s:shellesc(expand('%:p')) : '') : ' -999'
+	let opts .= s:build_args(a:args, workdir)
 	let graph = v:lua.require('flog/graph').get_graph(g:flog_counter, '__L', g:flog_enable_extended_chars, !a:bang, cmd.opts.' 2>&1')
-	if empty(graph.output) | return s:on_error('[flog] failed to execute: ' . cmd.opts) | endif
+	if has_key(graph, 'err') | return s:on_error('[flog] '. graph.err . ' WHILE EXECUTING ' . cmd.opts) | endif
 
 	exe 'silent! ' . (len(a:mods) ? a:mods : 'tab') . ' split flog-' . g:flog_counter
 	exe 'lcd ' . fnameescape(workdir)
