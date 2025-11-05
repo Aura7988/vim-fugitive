@@ -10,7 +10,8 @@ function! s:get_index() abort
 	return b:flog.line_commits[line('.') - 1]
 endfunction
 
-function! s:go_first(line) abort
+function! s:jump(line, mark = 1) abort
+	if a:mark | execute "normal! m'" | endif
 	call cursor(a:line, 1)
 	call search('\x', 'c', a:line)
 	let lw = wincol() - getwininfo(win_getid())[0].textoff
@@ -26,7 +27,7 @@ function! s:jump_commit(count, open = 0) abort
 	elseif offset >= len(b:flog.commits)
 		let offset = -1
 	endif
-	call s:go_first(b:flog.commits[offset].line)
+	call s:jump(b:flog.commits[offset].line, 0)
 	if a:open
 		call s:open_hash(b:flog.commits[offset].hash)
 	endif
@@ -37,7 +38,7 @@ function! s:jump_parent(count) abort
 	if empty(hash) | return | endif
 	let offset = get(b:flog.commits_by_hash, hash, -1)
 	if offset < 0 | return | endif
-	call s:go_first(b:flog.commits[offset].line)
+	call s:jump(b:flog.commits[offset].line)
 endfunction
 
 function! s:jump_child(count) abort
@@ -53,7 +54,7 @@ function! s:jump_child(count) abort
 		let i -= 1
 	endwhile
 	if nchildren == a:count
-		call s:go_first(b:flog.commits[offset].line)
+		call s:jump(b:flog.commits[offset].line)
 	endif
 endfunction
 
@@ -70,7 +71,7 @@ function! s:jump_ref(count) abort
 		let i += step
 	endwhile
 	if nrefs != 0
-		call s:go_first(b:flog.commits[offset].line)
+		call s:jump(b:flog.commits[offset].line)
 	endif
 endfunction
 
@@ -153,9 +154,10 @@ function! flog#Show(range, line1, line2, bang, mods, args) abort
 	call v:lua.require('flog/autocmd').nvim_create_graph_autocmds(bufnr(), g:flog_counter, !a:bang)
 	let g:flog_counter += 1
 
+	nnoremap <buffer> ' `
 	nnoremap <buffer>         .      :<C-u>Flog 
 	nnoremap <buffer><silent> q      :<C-u>close<CR>
-	nnoremap <buffer><silent> ^      :<C-u>call <SID>go_first(line('.'))<CR>
+	nnoremap <buffer><silent> ^      :<C-u>call <SID>jump(line('.'), 0)<CR>
 	nnoremap <buffer><silent> <CR>   :<C-u>call <SID>open_hash()<CR>
 	nnoremap <buffer><silent> j      :<C-u>call <SID>jump_commit(v:count1)<CR>
 	nnoremap <buffer><silent> k      :<C-u>call <SID>jump_commit(-v:count1)<CR>
