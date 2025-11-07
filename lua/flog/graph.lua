@@ -107,7 +107,7 @@ function M.get_graph(instance_number, start_token, enable_extended_chars, enable
   local st = handle:read()
   if st ~= start_token then
     handle:close()
-    return {err = st}
+    return {err = st or 'empty output'}
   end
 
   -- Read commits until EOF

@@ -30,6 +30,7 @@ function! s:jump_commit(count, open = 0) abort
 	call s:jump(b:flog.commits[offset].line, 0)
 	if a:open
 		call s:open_hash(b:flog.commits[offset].hash)
+		wincmd p
 	endif
 endfunction
 
